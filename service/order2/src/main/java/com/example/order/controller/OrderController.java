@@ -44,8 +44,11 @@ public class OrderController {
     @PostMapping("/api/placeOrder")
     public void placeOrder(@RequestBody PlaceOrderRequestDTO placeOrderRequestDTO) {
 
-        orderService.reserveOrder(placeOrderRequestDTO.getOrderId());
-        orderService.confirmOrder(placeOrderRequestDTO.getOrderId());
+        if (orderService.reserveOrder(placeOrderRequestDTO.getOrderId())) {
+            orderService.confirmOrder(placeOrderRequestDTO.getOrderId());
+        }
+
+        System.out.println("=================================거래 정상 종료.===================================");
 
     }
 

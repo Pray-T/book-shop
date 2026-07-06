@@ -11,8 +11,6 @@ import com.example.order.api.point.dto.PointReserveCancelApiRequestDTO;
 import com.example.order.api.point.dto.PointReserveConfirmApiRequestDTO;
 import com.example.order.domain.Order;
 import com.example.order.domain.OrderItem;
-import com.example.order.kafka.event.OrderConfirmedEvent;
-import com.example.order.kafka.producer.OrderEventProducer;
 import com.example.order.repository.OrderItemRepository;
 import com.example.order.repository.OrderRepository;
 //import com.example.order.tossController.dto.ConfirmPaymentRequestDTO;
@@ -45,7 +43,6 @@ public class OrderService {
 
     private final Snowflake snowflake;
 
-    private final OrderEventProducer orderEventProducer;
 
 //    @Value("${toss.secret-key}")
 //    private String secretKey;
@@ -77,9 +74,10 @@ public class OrderService {
 
         List<OrderItem> orderItems = orderItemRepository.findAllByOrderId(orderId);
 
-        reserve(orderId);
 
         try {
+            reserve(orderId);
+
             BookReserveApiRequestDTO bookReserveApiRequestDTO = new BookReserveApiRequestDTO(
                     String.valueOf(orderId),
                     orderItems.stream().map(
@@ -92,26 +90,29 @@ public class OrderService {
 
             BookReserveApiResponseDTO bookReserveApiResponseDTO = bookApiClient.reserve(bookReserveApiRequestDTO);
 
-            PointReserveApiRequestDTO pointReserveApiRequestDTO = new PointReserveApiRequestDTO(
-                    String.valueOf(orderId),
-                    1L,
-                    order.getUsePoint()
-            );
-
-            pointApiClient.reserve(pointReserveApiRequestDTO);
+//            PointReserveApiRequestDTO pointReserveApiRequestDTO = new PointReserveApiRequestDTO(
+//                    String.valueOf(orderId),
+//                    1L,
+//                    order.getUsePoint()
+//            );
+//
+//            pointApiClient.reserve(pointReserveApiRequestDTO);
+//            테스트를 위한 포인트서버 주석처리, 테스트 조건은 공평해야한다. order2서버는 포인트서버를 제외하고 테스트 하기에 1서버도 제외시켜주자.
 
             return true;
 
         } catch (Exception e) {
             cancel(orderId);
 
-            BookReserveCancelApiRequestDTO bookReserveCancelApiRequestDTO =
-                    new BookReserveCancelApiRequestDTO(String.valueOf(orderId));
-            bookApiClient.cancel(bookReserveCancelApiRequestDTO);
+//            BookReserveCancelApiRequestDTO bookReserveCancelApiRequestDTO =
+//                    new BookReserveCancelApiRequestDTO(String.valueOf(orderId));
+//            bookApiClient.cancel(bookReserveCancelApiRequestDTO);
+            //사실 book서버에서 reserve가 취소됐따면, 롤백되어서 reservation이나 재고를 변경한 흔적이 없다.
+            //따라서 book서버로 가서 reservation을 찾거나 재고를 변경하는 건 정합성 오류다.
 
-            PointReserveCancelApiRequestDTO pointReserveCancelApiRequestDTO =
-                    new PointReserveCancelApiRequestDTO(String.valueOf(orderId));
-            pointApiClient.cancel(pointReserveCancelApiRequestDTO);
+//            PointReserveCancelApiRequestDTO pointReserveCancelApiRequestDTO =
+//                    new PointReserveCancelApiRequestDTO(String.valueOf(orderId));
+//            pointApiClient.cancel(pointReserveCancelApiRequestDTO);
 
             return false;
         }
@@ -125,15 +126,11 @@ public class OrderService {
                     new BookReserveConfirmApiRequestDTO(String.valueOf(orderId));
             bookApiClient.confirm(bookReserveConfirmApiRequestDTO);
 
-            PointReserveConfirmApiRequestDTO pointReserveConfirmApiRequestDTO =
-                    new PointReserveConfirmApiRequestDTO(String.valueOf(orderId));
-            pointApiClient.confirm(pointReserveConfirmApiRequestDTO);
+//            PointReserveConfirmApiRequestDTO pointReserveConfirmApiRequestDTO =
+//                    new PointReserveConfirmApiRequestDTO(String.valueOf(orderId));
+//            pointApiClient.confirm(pointReserveConfirmApiRequestDTO);
 
             confirm(orderId);
-
-            //카프카 호출 지점.
-            //confirm완료 후에만 보내기로 하자. pending처리 후에도 보내주기. 결제는 문제 없으니까,
-            //pending도 카프카 진행하기로 하자. pending은 추후 매뉴얼로 처리해주기로 하자.
 
             Order order = orderRepository.findById(orderId).orElseThrow(
                     () -> new RuntimeException("해당하는 주문번호가 없어요.")
@@ -141,12 +138,9 @@ public class OrderService {
 
             List<OrderItem> orderItems = orderItemRepository.findAllByOrderId(orderId);
 
-            orderEventProducer.sendOrderConfirmed(OrderConfirmedEvent.createOrderConfirmedEvent(order, orderItems));
-            //여기서 카프카 전송은 book서버가 아니라, point delivery bestseller다. order2서버에서 진행되는 이벤트 전송은 이것과 다르다. 그건 book2서버에도 전송하기 때문.
         } catch (Exception e) {
 
             pending(orderId);
-            //카프카 호출 지점.
 
         }
 

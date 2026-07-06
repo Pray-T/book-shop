@@ -43,7 +43,6 @@ public class Order {
         CANCELLED,
         CONFIRMED,
         PENDING,
-        COMPLETED
     }
 
     public void reserve() {

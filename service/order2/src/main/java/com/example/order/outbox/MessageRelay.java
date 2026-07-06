@@ -29,6 +29,8 @@ public class MessageRelay {
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void createOutbox(OutboxEvent outboxEvent) {
+        //만약 order가 confirm은 됐는데, commit전에 여기서 아웃박스가 실패한다?
+        //그럼 order까지 모두 롤백처리됨. afterCommit도 당연히 실행취소다.
         log.info("[MessageRelay.createOutbox] outboxEvent={}", outboxEvent);
         outboxRepository.save(outboxEvent.getOutbox());
     }

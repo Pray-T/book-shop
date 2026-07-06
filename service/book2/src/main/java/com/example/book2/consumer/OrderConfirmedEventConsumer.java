@@ -35,12 +35,13 @@ public class OrderConfirmedEventConsumer {
 
         } catch (JsonProcessingException e) {
             log.error("역직렬화 실패 message = {}", message, e);
-            //ack잘못된 메세지를 ack하지 않으면 계속해서 그 이벤트를 읽겠지만, 아직 ack하지 않는다.
-            //오류 추적을 위해, 추후 confirm 직렬화 실패 상태를 만들 수도 있을 것이다.
+            //ack잘못된 메세지를 ack하지 않으면 카프카에서 계속해서 그 이벤트(메세지)를 읽겠지만, 일단 ack하지 않는다.
+            //왜냐하면, 오류 추적을 위해, 추후 order상태 중 confirm 직렬화 실패 상태를 만들어 따로 관리할 예정.
+            //ack는 상태변화 후에 진행.
         } catch (Exception e) {
             log.error("처리 실패 message = {}", message, e);
             throw e;
-            //ack하지 않는다.
+            //여기서도 ack하지 않는다. 이유는 위와 같음. 관리하기.
         }
 
     }

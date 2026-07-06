@@ -15,7 +15,8 @@ public class BookRedisRepository {
 
     private final StringRedisTemplate redisTemplate;
 
-    private static final Duration BOOK_STOCK_TTL = Duration.ofDays(3);
+    private static final Duration BOOK_STOCK_TTL = Duration.ofDays(3);        //실제 정책은 3일
+//    private static final Duration BOOK_STOCK_TTL = Duration.ofSeconds(3);      //ttl이 정상작동하는지에 대한 테스트 용임
 
     private static final String RESERVE_SCRIPT = """
             local available = redis.call("GET", KEYS[1])
@@ -52,7 +53,7 @@ public class BookRedisRepository {
                 end
             
                 redis.call("DECRBY", KEYS[1], requestQuantity)
-                redis.call("EXPIRE", KEYS[2], ttl)
+                redis.call("EXPIRE", KEYS[1], ttl)
             
                 return 1
             end

@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -29,7 +30,7 @@ public class BookService {
     private final BookReservationRepository bookReservationRepository;
 
 //    private static final long RESERVATION_EXPIRE_MINUTES = 15L;
-
+//    예약 후 15분 내에 어떠한 조치도 없으면 예약 취소를 할 예정인데, RESERVATION_EXPIRE_MINUTES는 그것을 위한 인자 값이다.
     @Transactional
     public BookReserveResultDTO tryReserve(BookReserveDTO bookReserveDTO) {
 
@@ -84,7 +85,7 @@ public class BookService {
             throw new RuntimeException("예약된 정보가 없어요.");
         }
 
-        boolean alreadyConfirmed = result.stream().anyMatch(
+        boolean alreadyConfirmed = result.stream().allMatch(
                 item -> item.getStatus() == BookReservation.BookReservationStatus.CONFIRMED
         );
 
@@ -93,7 +94,12 @@ public class BookService {
             return;
         }
 
-        for (BookReservation reservation : result) {
+        //#####데드락 방지용#####
+        List<BookReservation> reservations = result.stream()
+                .sorted(Comparator.comparing(BookReservation::getBookId))
+                .toList();
+
+        for (BookReservation reservation : reservations) {
             Book book = bookRepository.findByIdForUpdate(reservation.getBookId()).orElseThrow(
                     () -> new RuntimeException("해당하는 책이 없어요.")
             );
@@ -115,7 +121,7 @@ public class BookService {
             throw new RuntimeException("예약된 정보가 없어요.");
         }
 
-        boolean alreadyConfirmed = result.stream().anyMatch(
+        boolean alreadyConfirmed = result.stream().allMatch(
                 item -> item.getStatus() == BookReservation.BookReservationStatus.CONFIRMED
         );
 
@@ -124,9 +130,20 @@ public class BookService {
             return;
         }
 
-        for (BookReservation reservation : result) {
+        //#####데드락 방지용#####
+        List<BookReservation> reservations = result.stream()
+                .sorted(Comparator.comparing(BookReservation::getBookId))
+                .toList();
 
-            bookRepository.decreaseQuantity(reservation.getBookId(), reservation.getReservedQuantity());
+
+        for (BookReservation reservation : reservations) {
+
+            int updated = bookRepository.decreaseQuantity(reservation.getBookId(), reservation.getReservedQuantity());
+
+            if (updated == 0) {
+                throw new RuntimeException("confirm을 실패했습니다. cf. failurl에서 3회 재시도 후에 안되면 결제 취소로 진행. " +
+                        "실패 이유는 디비연결 종료말고는 상상되지 않는다.");
+            }
             reservation.confirm();
 
             bookReservationRepository.save(reservation);
@@ -144,7 +161,7 @@ public class BookService {
         RedisReserveResult result = bookRedisRepository.reserve(bookId, quantity);
 
         if (result == RedisReserveResult.SUCCESS) {
-            return book.getPrice();
+            return book.getPrice() * quantity;
         }
 
         if (result == RedisReserveResult.OUT_OF_STOCK) {
@@ -155,7 +172,7 @@ public class BookService {
 
         if (result1 == RedisReserveResult.SUCCESS) {
             System.out.println("redis예약에 성공했어요.");
-            return book.getPrice();
+            return book.getPrice() * quantity;
         }
 
         if (result1 == RedisReserveResult.OUT_OF_STOCK) {
@@ -177,7 +194,7 @@ public class BookService {
             throw new RuntimeException("예약된 정보가 없어요.");
         }
 
-        boolean alreadyCancelled = result.stream().anyMatch(
+        boolean alreadyCancelled = result.stream().allMatch(
                 item -> item.getStatus() == BookReservation.BookReservationStatus.CANCELLED
         );
 

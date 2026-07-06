@@ -23,7 +23,7 @@ public class BookApiClient {
                     HttpClientErrorException.NotFound.class
             },
             maxAttempts = 3,
-            backoff = @Backoff(delay = 500)
+            backoff = @Backoff(delay = 500) //재시도 시 딜레이. 만약 1차 요청이 오류라면 0.5초 있다가 다시 재시도한다.
     )
     public BookReserveApiResponseDTO reserve(BookReserveApiRequestDTO bookReserveApiRequestDTO) {
         return restClient.post()

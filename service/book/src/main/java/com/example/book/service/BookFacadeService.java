@@ -34,6 +34,7 @@ public class BookFacadeService {
         while (count <= 3) {
             try {
                 bookService.confirmReserve(bookReserveConfirmDTO);
+                return;
             } catch (ObjectOptimisticLockingFailureException e) {
                 count++;
             }
@@ -46,6 +47,7 @@ public class BookFacadeService {
         while (count <= 3) {
             try {
                 bookService.cancelReserve(bookReserveCancelDTO);
+                return;
             } catch (ObjectOptimisticLockingFailureException e) {
                 count++;
             }

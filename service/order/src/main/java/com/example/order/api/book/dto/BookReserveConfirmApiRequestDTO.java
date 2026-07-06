@@ -7,6 +7,6 @@ import lombok.Getter;
 @AllArgsConstructor
 public class BookReserveConfirmApiRequestDTO {
 
-    public String orderId;
+    public String requestId;
 
 }

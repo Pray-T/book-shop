@@ -54,6 +54,7 @@ public class OrderService {
 
     }
 
+    @Transactional
     public boolean reserveOrder(Long orderId) {
         Order order = orderRepository.findById(orderId).orElseThrow(
                 () -> new RuntimeException("해당하는 주문번호가 없어요.")
@@ -76,13 +77,13 @@ public class OrderService {
 
             BookReserveApiResponseDTO bookReserveApiResponseDTO = bookApiClient.reserve(bookReserveApiRequestDTO);
 
-            PointReserveApiRequestDTO pointReserveApiRequestDTO = new PointReserveApiRequestDTO(
-                    String.valueOf(orderId),
-                    1L,
-                    order.getUsePoint()
-            );
-
-            pointApiClient.reserve(pointReserveApiRequestDTO);
+//            PointReserveApiRequestDTO pointReserveApiRequestDTO = new PointReserveApiRequestDTO(
+//                    String.valueOf(orderId),
+//                    1L,
+//                    order.getUsePoint()
+//            );
+//
+//            pointApiClient.reserve(pointReserveApiRequestDTO);
 
             return true;
         } catch (Exception e) {
@@ -92,9 +93,9 @@ public class OrderService {
                     new BookReserveCancelApiRequestDTO(String.valueOf(orderId));
             bookApiClient.cancel(bookReserveCancelApiRequestDTO);
 
-            PointReserveCancelApiRequestDTO pointReserveCancelApiRequestDTO =
-                    new PointReserveCancelApiRequestDTO(String.valueOf(orderId));
-            pointApiClient.cancel(pointReserveCancelApiRequestDTO);
+//            PointReserveCancelApiRequestDTO pointReserveCancelApiRequestDTO =
+//                    new PointReserveCancelApiRequestDTO(String.valueOf(orderId));
+//            pointApiClient.cancel(pointReserveCancelApiRequestDTO);
 
             return false;
 
@@ -111,6 +112,7 @@ public class OrderService {
         }
     }
 
+    @Transactional
     public void confirmOrder(Long orderId) {
         //기존에는 api client를 이용했지만, 이제 카프카를 사용할 것이다.
 
@@ -163,10 +165,10 @@ public class OrderService {
 
         bookApiClient.cancel(bookReserveCancelApiRequestDTO);
 
-        PointReserveCancelApiRequestDTO pointReserveCancelApiRequestDTO =
-                new PointReserveCancelApiRequestDTO(String.valueOf(orderId));
-
-        pointApiClient.cancel(pointReserveCancelApiRequestDTO);
+//        PointReserveCancelApiRequestDTO pointReserveCancelApiRequestDTO =
+//                new PointReserveCancelApiRequestDTO(String.valueOf(orderId));
+//
+//        pointApiClient.cancel(pointReserveCancelApiRequestDTO);
 
     }
 

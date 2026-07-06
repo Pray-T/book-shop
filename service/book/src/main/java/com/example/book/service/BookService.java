@@ -66,7 +66,7 @@ public class BookService {
             throw new RuntimeException("예약된 정보가 없어요.");
         }
 
-        boolean alreadyConfirmed = result.stream().anyMatch(
+        boolean alreadyConfirmed = result.stream().allMatch(
                 item -> item.getStatus() == BookReservation.BookReservationStatus.CONFIRMED
         );
 
@@ -93,7 +93,7 @@ public class BookService {
             throw new RuntimeException("예약된 정보가 없어요.");
         }
 
-        boolean alreadyCancelled = result.stream().anyMatch(
+        boolean alreadyCancelled = result.stream().allMatch(
                 item -> item.getStatus() == BookReservation.BookReservationStatus.CANCELLED
         );
 

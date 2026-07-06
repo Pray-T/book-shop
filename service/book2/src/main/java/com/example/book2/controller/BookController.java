@@ -36,7 +36,7 @@ public class BookController {
     }
 
     @PostMapping("/book/confirm")
-    public void confirm(BookReserveConfirmRequestDTO bookReserveConfirmRequestDTO) {
+    public void confirm(@RequestBody BookReserveConfirmRequestDTO bookReserveConfirmRequestDTO) {
         String key = "book:" + bookReserveConfirmRequestDTO.getRequestId();
         boolean acquiredLock = redisLockService.tryLock(key, bookReserveConfirmRequestDTO.getRequestId());
 
@@ -53,7 +53,7 @@ public class BookController {
     }
 
     @PostMapping("/book/cancel")
-    public void cancel(BookReserveCancelRequestDTO bookReserveCancelRequestDTO) {
+    public void cancel(@RequestBody BookReserveCancelRequestDTO bookReserveCancelRequestDTO) {
         String key = "book:" + bookReserveCancelRequestDTO.getRequestId();
         boolean acquiredLock = redisLockService.tryLock(key, bookReserveCancelRequestDTO.getRequestId());
 

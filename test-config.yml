@@ -1,0 +1,37 @@
+config:
+  target: "http://localhost:8080"
+  phases:
+    - duration: 30
+      arrivalRate: 1
+      name: "warm up"
+
+    - duration: 60
+      arrivalRate: 3
+      name: "light load"
+
+    - duration: 60
+      arrivalRate: 5
+      name: "medium check"
+
+scenarios:
+  - name: "create order then place order"
+    flow:
+      - post:
+          url: "/api/createOrder"
+          json:
+            usePoint: 0
+            priceAmount: 30000
+            userId: 1
+            orderItems:
+              - bookId: 1
+                quantity: 2
+              - bookId: 2
+                quantity: 1
+          capture:
+            - json: "$.orderId"
+              as: "orderId"
+
+      - post:
+          url: "/api/placeOrder"
+          json:
+            orderId: "{{ orderId }}"

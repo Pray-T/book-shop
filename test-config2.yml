@@ -1,0 +1,52 @@
+config:
+  target: "http://localhost:8080"
+  phases:
+    - duration: 10
+      arrivalRate: 250
+      name: "short heavy burst"
+
+  variables:
+    userId:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+      - 7
+      - 8
+      - 9
+      - 10
+      - 11
+      - 12
+      - 13
+      - 14
+      - 15
+      - 16
+      - 17
+      - 18
+      - 19
+      - 20
+
+scenarios:
+  - name: "create order then place order - burst"
+    flow:
+      - post:
+          url: "/api/createOrder"
+          json:
+            usePoint: 0
+            priceAmount: 30000
+            userId: "{{ userId }}"
+            orderItems:
+              - bookId: 1
+                quantity: 2
+              - bookId: 2
+                quantity: 1
+          capture:
+            - json: "$.orderId"
+              as: "orderId"
+
+      - post:
+          url: "/api/placeOrder"
+          json:
+            orderId: "{{ orderId }}"

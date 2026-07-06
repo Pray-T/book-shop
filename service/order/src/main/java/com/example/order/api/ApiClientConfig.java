@@ -16,7 +16,7 @@ public class ApiClientConfig {
     @Bean
     public BookApiClient bookApiClient() {
         HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
-        factory.setReadTimeout(Duration.ofSeconds(1));
+        factory.setReadTimeout(Duration.ofSeconds(10));
 
         return new BookApiClient(
                 RestClient.builder()
