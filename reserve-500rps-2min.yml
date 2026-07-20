@@ -1,0 +1,44 @@
+config:
+  target: "http://localhost:8080"
+
+  phases:
+    - duration: 20
+      arrivalRate: 10
+      rampTo: 250
+      name: "reserve 500 RPS ramp up"
+
+    - duration: 60
+      arrivalRate: 250
+      name: "reserve 500 RPS peak"
+
+    - duration: 20
+      arrivalRate: 250
+      rampTo: 10
+      name: "reserve 500 RPS ramp down"
+
+    - duration: 20
+      arrivalRate: 10
+      name: "reserve recovery"
+
+scenarios:
+  - name: "create order then reserve"
+    flow:
+      - post:
+          url: "/api/createOrder"
+          json:
+            usePoint: 0
+            priceAmount: 30000
+            userId: 1
+            orderItems:
+              - bookId: 1
+                quantity: 2
+              - bookId: 2
+                quantity: 1
+          capture:
+            - json: "$.orderId"
+              as: "orderId"
+
+      - post:
+          url: "/api/reserve"
+          json:
+            orderId: "{{ orderId }}"

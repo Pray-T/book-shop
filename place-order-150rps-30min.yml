@@ -1,0 +1,44 @@
+config:
+  target: "http://localhost:8080"
+
+  phases:
+    - duration: 60
+      arrivalRate: 10
+      rampTo: 75
+      name: "placeOrder 150 RPS ramp up"
+
+    - duration: 1620
+      arrivalRate: 75
+      name: "placeOrder 150 RPS sustained"
+
+    - duration: 60
+      arrivalRate: 75
+      rampTo: 10
+      name: "placeOrder 150 RPS ramp down"
+
+    - duration: 60
+      arrivalRate: 10
+      name: "placeOrder recovery"
+
+scenarios:
+  - name: "create order then place order"
+    flow:
+      - post:
+          url: "/api/createOrder"
+          json:
+            usePoint: 0
+            priceAmount: 30000
+            userId: 1
+            orderItems:
+              - bookId: 1
+                quantity: 2
+              - bookId: 2
+                quantity: 1
+          capture:
+            - json: "$.orderId"
+              as: "orderId"
+
+      - post:
+          url: "/api/placeOrder"
+          json:
+            orderId: "{{ orderId }}"
