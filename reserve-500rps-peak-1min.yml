@@ -3,25 +3,11 @@ config:
 
   phases:
     - duration: 60
-      arrivalRate: 10
-      rampTo: 75
-      name: "reserve 150 RPS ramp up"
-
-    - duration: 1620
-      arrivalRate: 75
-      name: "reserve 150 RPS sustained"
-
-    - duration: 60
-      arrivalRate: 75
-      rampTo: 10
-      name: "reserve 150 RPS ramp down"
-
-    - duration: 60
-      arrivalRate: 10
-      name: "reserve recovery"
+      arrivalRate: 250
+      name: "reserve 500 RPS immediate burst"
 
 scenarios:
-  - name: "create order then reserve"
+  - name: "create order then reserve - immediate burst"
     flow:
       - post:
           url: "/api/createOrder"
