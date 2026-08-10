@@ -159,11 +159,11 @@ public class OrderService {
     public void cancelOrder(Long orderId) {
         //정책1: 15분 내에 어떠한 조치도 없으면 바로 cancel처리. 15분 마다 배치 메서드가 돌 것이다.
         //정책2: 토스 결제 실패도 마찬가지다. 토스 결제 실패url로 리다이렉팅되면 cancelOrder를 실행한다.
-        //정책1,2는 개념만 정하고 구현은 하지 않는다.
         BookReserveCancelApiRequestDTO bookReserveCancelApiRequestDTO =
                 new BookReserveCancelApiRequestDTO(String.valueOf(orderId));
 
         bookApiClient.cancel(bookReserveCancelApiRequestDTO);
+        cancel(orderId);
 
 //        PointReserveCancelApiRequestDTO pointReserveCancelApiRequestDTO =
 //                new PointReserveCancelApiRequestDTO(String.valueOf(orderId));

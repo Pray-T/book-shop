@@ -23,6 +23,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -104,11 +105,9 @@ public class OrderService {
         } catch (Exception e) {
             cancel(orderId);
 
-//            BookReserveCancelApiRequestDTO bookReserveCancelApiRequestDTO =
-//                    new BookReserveCancelApiRequestDTO(String.valueOf(orderId));
-//            bookApiClient.cancel(bookReserveCancelApiRequestDTO);
-            //사실 book서버에서 reserve가 취소됐따면, 롤백되어서 reservation이나 재고를 변경한 흔적이 없다.
-            //따라서 book서버로 가서 reservation을 찾거나 재고를 변경하는 건 정합성 오류다.
+            BookReserveCancelApiRequestDTO bookReserveCancelApiRequestDTO =
+                    new BookReserveCancelApiRequestDTO(String.valueOf(orderId));
+            bookApiClient.cancel(bookReserveCancelApiRequestDTO);
 
 //            PointReserveCancelApiRequestDTO pointReserveCancelApiRequestDTO =
 //                    new PointReserveCancelApiRequestDTO(String.valueOf(orderId));
@@ -146,8 +145,21 @@ public class OrderService {
 
     }
 
+    public void cancelOrder(Long orderId) {
+        //정책1: 15분 내에 어떠한 조치도 없으면 바로 cancel처리. 15분 마다 배치 메서드가 돌 것이다.
+        //정책2: 토스 결제 실패도 마찬가지다. 토스 결제 실패url로 리다이렉팅되면 cancelOrder를 실행한다.
+        BookReserveCancelApiRequestDTO bookReserveCancelApiRequestDTO =
+                new BookReserveCancelApiRequestDTO(String.valueOf(orderId));
 
+        bookApiClient.cancel(bookReserveCancelApiRequestDTO);
+        cancel(orderId);
 
+//        PointReserveCancelApiRequestDTO pointReserveCancelApiRequestDTO =
+//                new PointReserveCancelApiRequestDTO(String.valueOf(orderId));
+//
+//        pointApiClient.cancel(pointReserveCancelApiRequestDTO);
+
+    }
 
 
 ////========================================================아래는 토스 관련

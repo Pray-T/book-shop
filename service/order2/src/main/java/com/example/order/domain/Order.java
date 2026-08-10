@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "orders")
 @Getter
@@ -16,6 +18,7 @@ public class Order {
     private Long totalPrice;
 
     private Long userId;
+    private LocalDateTime reservedAt;
 
     @Setter
     private String paymentKey;
@@ -33,6 +36,7 @@ public class Order {
         this.usePoint = usePoint;
         this.totalPrice = priceAmount - usePoint;
         this.userId = userId;
+        this.reservedAt = LocalDateTime.now();
         this.status = OrderStatus.CREATED;
     }
 
